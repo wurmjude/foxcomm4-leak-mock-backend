@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: demo
+server:
+  port: 443
+  ssl:
+    key-store: classpath:hsp.jks
+    key-store-password: password
+    key-store-type: JKS
+    key-alias: hsp
