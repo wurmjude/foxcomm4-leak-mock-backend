@@ -4,11 +4,11 @@ Ez a program demonstrációs célból készült, a FoxComm sikeres aktiválásá
 
 Az aktiváló ablak kitöltése:
 - **Vásárlói azonosító:** ```user```
-- **Termékkulcs:** *tetszőleges, de nem üres*
-- **Azonosító token:** *tetszőleges, de nem üres*
+- **Termékkulcs:** ```serial```
+- **Azonosító token:** ```token```
 
 Ezután a Fox újraindul, és már a "preloader" fog fogadni, amely folyamat végén hibát fog kiírni, mert a fájl, amit keres, sajnos nem került ki.
-
+Vállalkozó szelleműek felvehetnek további azonosítókat is a ```LicensingController.java``` fájl ```init()``` metódusában.
 Ha végigmentél a folyamaton, de szeretnéd újra átélni az aktiválás élményét, a backendet újra kell indítani (Útmutató 3. pont).
 ## Útmutató
 #### 1. A ```C:\Windows\System32\drivers\etc\hosts``` fájlhoz add hozzá a következő sort:
