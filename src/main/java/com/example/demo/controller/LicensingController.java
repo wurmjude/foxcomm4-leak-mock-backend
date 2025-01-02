@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.License;
 import com.example.demo.service.LicensingService;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,60 +30,77 @@ public class LicensingController {
     @PostConstruct
     private void init() {
         licensingService.addLicense("serial", "token", "user", "Gipsz Jakab");
-        licensingService.addLicense("kulcs", "azon", "user2", "Teszt Elek");
     }
-    
+
+    @PostMapping("add_license")
+    public ResponseEntity<String> addLicense(HttpServletRequest request,
+                           @RequestParam("serial") String serial,
+                           @RequestParam("magic_key") String magicKey,
+                           @RequestParam("user_id") String userID,
+                           @RequestParam("full_name") String fullName) {
+        try {
+            licensingService.addLicense(serial, magicKey, userID, fullName);
+            return ResponseEntity.ok("License added");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @Hidden
     @GetMapping("/Engine/Preloader")
     public ResponseEntity<License> getLicenseByBearerToken(HttpServletRequest request, @RequestParam Map<String, String> params) {
         printRequestInfo(request, params);
         String token = getBearerToken(request);
         if (token == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         var lic = licensingService.getLicenseByBearerToken(token);
-        return new ResponseEntity<>((lic != null) ? lic : new License(), HttpStatus.OK);
+        return ResponseEntity.ok((lic != null) ? lic : new License());
     }
 
+    @Hidden
     @GetMapping("/Checklua/Gipszelo")
     public ResponseEntity<License> getLicenseByMagicKey(HttpServletRequest request, @RequestParam Map<String, String> params) {
         printRequestInfo(request, params);
         String token = getBearerToken(request);
         if (token == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         var lic = licensingService.getLicenseByMagicKey(token);
-        return new ResponseEntity<>(lic, HttpStatus.OK);
+        return ResponseEntity.ok(lic);
     }
 
+    @Hidden
     @GetMapping("/Checklua/Serlod")
     public ResponseEntity<License> validateLicense(HttpServletRequest request, @RequestParam Map<String, String> params) {
         printRequestInfo(request, params);
         String token = getBearerToken(request);
         if (token == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         var licByToken = licensingService.getLicenseByMagicKey(token);
         if (licByToken == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         var licBySerial = licensingService.getLicenseBySerial(params.get("Serl"));
         if (licBySerial == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (!licBySerial.equals(licByToken)) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return new ResponseEntity<>(licBySerial, HttpStatus.OK);
+        return ResponseEntity.ok(licBySerial);
     }
 
+    @Hidden
     @GetMapping("/Checklua/Serial")
     public ResponseEntity<License> activateLicense(HttpServletRequest request, @RequestParam Map<String, String> params) {
         printRequestInfo(request, params);
         var lic = licensingService.activateLicense(params.get("AddSer"), params.get("Addcp"), params.get("Addhd"), params.get("Partid"), params.get("Bdsn"));
         if (lic == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return new ResponseEntity<>(lic, HttpStatus.OK);
+        return ResponseEntity.ok(lic);
     }
 
     private String getBearerToken(HttpServletRequest request) {
